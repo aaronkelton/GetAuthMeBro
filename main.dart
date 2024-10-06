@@ -1,11 +1,5 @@
 /// Assuming we can securely *transport* the authentication credentials (email & password) to the backend, are we
-/// storing them securely? No: we're putting them directly into `myAuthData` as plaintext, i.e. no modifications.
-///
-/// But if our backend is secure, what's the risk? Assuming nobody ever gains access to our database or server, there is
-/// still risk that our engineers will be able to see or inspect the plaintext, and could therefore login as this user.
-///
-/// Therefore, we need to prevent our trusted engineers and also hackers from seeing or inspecting the plaintext
-/// password.
+/// storing them securely? Let's convert it from plaintext to something obscured.
 main() {
   //region Frontend
   var myEmail = 'foo@bar.baz';
@@ -13,11 +7,25 @@ main() {
   //endregion Frontend
 
   //region Backend
+  /// Let's modify the password so that we're not storing the plaintext. How should we obscure it?
+  /// Naively, let's increment the string by some value. Our "encryption key" is the value 1
+  var passwordCodeUnits = [];
+  for (var char in myPassword.split('')) {
+    passwordCodeUnits.add(char.codeUnits.first + 1);
+  }
+  dynamic obscuredPassword = [];
+  for (var codepoint in passwordCodeUnits) {
+    obscuredPassword.add(String.fromCharCode(codepoint));
+  }
+  obscuredPassword = obscuredPassword.join('');
+
   var myAuthData = {
     'email': myEmail,
-    'password': myPassword,
+    'password': obscuredPassword,
   };
 
-  print(myAuthData); // => {email: foo@bar.baz, password: nevergonnaguessit}
+  /// Like pig latin, this obscuring algorithm is easy to figure out. The length is the exact same as the real password!
+  /// But hey it's better than plaintext, right? Incremental progress 💪
+  print(myAuthData); // => {email: foo@bar.baz, password: ofwfshpoobhvfttju}
   //endregion Backend
 }
